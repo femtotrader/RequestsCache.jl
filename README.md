@@ -1,6 +1,6 @@
 # RequestsCache.jl
 
-WORK IN PROGRESS!!!
+[![Build Status](https://travis-ci.org/femtotrader/RequestsCache.jl.svg?branch=master)](https://travis-ci.org/femtotrader/RequestsCache.jl)
 
 RequestsCache.jl is a transparent persistent cache using [Requests.jl](https://github.com/JuliaWeb/Requests.jl) library.
 
