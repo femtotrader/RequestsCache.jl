@@ -16,21 +16,22 @@ module RequestsCache
 
     #import Dates
     import Base: read
-    import Requests: get
+    import Requests: do_request
     import URIParser: URI
     import HttpCommon: Response
     import JLD: jldopen, write
 
     immutable PreparedQuery
-        verb
+        verb::ASCIIString
         uri::URI
-        kwargs::Dict{Any,Any}
+        args::Array{Any,1}
     end
-    Base.hash(q::PreparedQuery, h::UInt) = hash(string(q.verb), hash(string(q.uri), hash(q.kwargs)))
+    Base.hash(q::PreparedQuery, h::UInt) = hash(string(q.verb), hash(string(q.uri), hash(q.args)))
 
-    function create_query(verb::Function, uri::URI; kwargs...)
-        return PreparedQuery(verb, uri, Dict(kwargs))
+    function create_query(verb::ASCIIString, uri::URI; args...)
+        return PreparedQuery(verb, uri, args)
     end
+    create_query(verb::ASCIIString, uri::AbstractString; args...) = create_query(verb, URI(uri); args...)
 
     immutable CachedSessionType
         cache_name::AbstractString
@@ -90,8 +91,10 @@ module RequestsCache
     end
 
     function execute_remote(prepared_query::PreparedQuery)
-        println("execute_remote $(prepared_query.verb) $(prepared_query.uri) $(prepared_query.kwargs)")
-        prepared_query.verb(string(prepared_query.uri); prepared_query.kwargs...)
+        println("execute_remote $(prepared_query.verb) $(prepared_query.uri) $(prepared_query.args)")
+        #prepared_query.verb(string(prepared_query.uri); prepared_query.args...)
+        verb = uppercase(string(prepared_query.verb))
+        do_request(prepared_query.uri, verb; prepared_query.args...)
     end
 
     function execute_local(session::CachedSessionType, prepared_query::PreparedQuery)
@@ -122,6 +125,32 @@ module RequestsCache
             execute_remote(prepared_query)
         else
             execute_local(session, prepared_query)
+        end
+    end
+
+    for f in [:get, :post, :put, :delete, :head,
+              :trace, :options, :patch, :connect]
+        f_str = uppercase(string(f))
+        #f_stream = symbol(string(f, "_streaming"))
+        @eval begin
+            function ($f)(session::CachedSessionType, uri::URI, data::AbstractString; headers::Dict=Dict())
+                #do_request(uri, $f_str; data=data, headers=headers)
+                prepared_query = create_query($f_str, uri; data=data, headers=headers)
+                response = execute(prepared_query; session=session)
+            end
+
+            ($f)(session::CachedSessionType, uri::AbstractString; args...) = ($f)(session, URI(uri); args...)
+            function ($f)(session::CachedSessionType, uri::URI; args...)
+                #do_request(uri, $f_str; args...)
+                prepared_query = create_query($f_str, uri; args...)
+                response = execute(prepared_query; session=session)
+            end
+
+            #function ($f_stream)(uri::URI, data::AbstractString; headers::Dict=Dict())
+            #    do_stream_request(uri, $f_str; data=data, headers=headers)
+            #end
+            #($f_stream)(uri::AbstractString; args...) = ($f_stream)(URI(uri); args...)
+            #($f_stream)(uri::URI; args...) = do_stream_request(uri, $f_str; args...)
         end
     end
 

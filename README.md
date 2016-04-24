@@ -19,17 +19,17 @@ Pkg.clone("https://github.com/femtotrader/RequestsCache.jl.git")
 ## Usage
 
 ```julia
-import RequestsCache: create_query, execute, CachedSession, Session
-import URIParser: URI
-import Requests: get
+import RequestsCache: Session, CachedSession, get
 
 session = Session()
 #session = CachedSession()
 session = CachedSession(cache_name="cache.jld", backend="jld", expire_after=Base.Dates.Day(1))
 #println(session)
 
-prepared_query = create_query(get, URI("http://httpbin.org/get"), query = Dict("title" => "page1"), data = "Hello World")
-response = execute(prepared_query; session=session)
+response = get(session, "http://httpbin.org/get", query = Dict("title" => "page1"))
 
 println(readall(response))
 ```
+
+## Projects using RequestsCache.jl
+ - [DataReader.jl](https://github.com/femtotrader/DataReader.jl)
