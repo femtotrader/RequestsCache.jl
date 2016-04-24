@@ -1,6 +1,7 @@
 include("src/RequestsCache.jl")
 
-import RequestsCache: Session, CachedSession, create_query, execute
+import RequestsCache: Session, CachedSession
+import RequestsCache: create_query, execute
 import RequestsCache: get
 
 session = Session()

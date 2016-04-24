@@ -19,7 +19,8 @@ Pkg.clone("https://github.com/femtotrader/RequestsCache.jl.git")
 ## Usage
 
 ```julia
-import RequestsCache: Session, CachedSession, get
+import RequestsCache: Session, CachedSession
+import RequestsCache: get
 
 session = Session()
 #session = CachedSession()
