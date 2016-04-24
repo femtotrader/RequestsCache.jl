@@ -17,3 +17,9 @@ response = get(session, "http://httpbin.org/get"; query = Dict("title" => "page1
 parsed_resp = Requests.json(response)
 @test parsed_resp["args"]["title"] == "page1"
 @test parsed_resp["headers"]["Host"] == "httpbin.org"
+
+response = get(session, "http://httpbin.org/get"; query = Dict("title" => "page1"))
+
+parsed_resp = Requests.json(response)
+@test parsed_resp["args"]["title"] == "page1"
+@test parsed_resp["headers"]["Host"] == "httpbin.org"
