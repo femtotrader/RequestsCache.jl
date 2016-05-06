@@ -16,7 +16,7 @@ module RequestsCache
 
     #import Dates
     import Base: read
-    import Requests: do_request
+    import Requests: do_request, do_stream_request, ResponseStream
     import URIParser: URI
     import HttpCommon: Response
     import JLD: jldopen, write
@@ -60,6 +60,28 @@ module RequestsCache
         Dates.now(Dates.UTC)
     end
 
+    #=
+    immutable CachedResponseStream{T}
+        dt_stored::DateTime
+        response::ResponseStream{T}
+    end
+
+    function write(session::CachedSessionType, prepared_query::PreparedQuery, response::ResponseStream{TCPSocket})
+        backend = lowercase(session.backend)
+        filename = session.cache_name
+        key = string(hash(prepared_query))
+        cached_response = CachedResponseStream(UTCnow(), response)
+        if backend == "jld"
+            jldopen(filename, "w") do file
+                println("Write $cached_response with key='$key' to '$filename'")
+                write(file, key, cached_response)
+            end
+        else
+            error("'$(backend)' is not a supported backend for writing")
+        end
+    end
+    =#
+
     function write(session::CachedSessionType, prepared_query::PreparedQuery, response::Response)
         backend = lowercase(session.backend)
         filename = session.cache_name
@@ -94,7 +116,11 @@ module RequestsCache
         println("execute_remote $(prepared_query.verb) $(prepared_query.uri) $(prepared_query.args)")
         #prepared_query.verb(string(prepared_query.uri); prepared_query.args...)
         verb = uppercase(string(prepared_query.verb))
-        do_request(prepared_query.uri, verb; prepared_query.args...)
+        if !contains(verb, "_STREAMING")
+            do_request(prepared_query.uri, verb; prepared_query.args...)
+        else
+            do_stream_request(prepared_query.uri, verb; prepared_query.args...)
+        end
     end
 
     function execute_local(session::CachedSessionType, prepared_query::PreparedQuery)
