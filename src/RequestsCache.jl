@@ -12,7 +12,7 @@ Inspired by [requests-cache](http://requests-cache.readthedocs.org/).
 
 module RequestsCache
 
-    export get
+    export get, CachedSession, Session
 
     #import Dates
     import Base: read
