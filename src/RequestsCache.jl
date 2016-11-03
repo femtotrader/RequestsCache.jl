@@ -22,20 +22,20 @@ module RequestsCache
     import JLD: jldopen, write
 
     immutable PreparedQuery
-        verb::ASCIIString
+        verb::String
         uri::URI
         args::Array{Any,1}
     end
     Base.hash(q::PreparedQuery, h::UInt) = hash(string(q.verb), hash(string(q.uri), hash(q.args)))
 
-    function create_query(verb::ASCIIString, uri::URI; args...)
+    function create_query(verb::String, uri::URI; args...)
         return PreparedQuery(verb, uri, args)
     end
-    create_query(verb::ASCIIString, uri::AbstractString; args...) = create_query(verb, URI(uri); args...)
+    create_query(verb::String, uri::String; args...) = create_query(verb, URI(uri); args...)
 
     immutable CachedSessionType
-        cache_name::AbstractString
-        backend::AbstractString
+        cache_name::String
+        backend::String
         expire_after
     end
 
@@ -159,23 +159,23 @@ module RequestsCache
         f_str = uppercase(string(f))
         #f_stream = symbol(string(f, "_streaming"))
         @eval begin
-            function ($f)(session::CachedSessionType, uri::URI, data::AbstractString; headers::Dict=Dict())
+            function ($f)(session::CachedSessionType, uri::URI, data::String; headers::Dict=Dict())
                 #do_request(uri, $f_str; data=data, headers=headers)
                 prepared_query = create_query($f_str, uri; data=data, headers=headers)
                 response = execute(prepared_query; session=session)
             end
 
-            ($f)(session::CachedSessionType, uri::AbstractString; args...) = ($f)(session, URI(uri); args...)
+            ($f)(session::CachedSessionType, uri::String; args...) = ($f)(session, URI(uri); args...)
             function ($f)(session::CachedSessionType, uri::URI; args...)
                 #do_request(uri, $f_str; args...)
                 prepared_query = create_query($f_str, uri; args...)
                 response = execute(prepared_query; session=session)
             end
 
-            #function ($f_stream)(uri::URI, data::AbstractString; headers::Dict=Dict())
+            #function ($f_stream)(uri::URI, data::String; headers::Dict=Dict())
             #    do_stream_request(uri, $f_str; data=data, headers=headers)
             #end
-            #($f_stream)(uri::AbstractString; args...) = ($f_stream)(URI(uri); args...)
+            #($f_stream)(uri::String; args...) = ($f_stream)(URI(uri); args...)
             #($f_stream)(uri::URI; args...) = do_stream_request(uri, $f_str; args...)
         end
     end
