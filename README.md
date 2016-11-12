@@ -1,6 +1,12 @@
 # RequestsCache.jl
 
+[![Package Evaluator](http://pkg.julialang.org/badges/RequestsCache_0.5.svg)](http://pkg.julialang.org/?pkg=RequestsCache)
+
 [![Build Status](https://travis-ci.org/femtotrader/RequestsCache.jl.svg?branch=master)](https://travis-ci.org/femtotrader/RequestsCache.jl)
+
+[![Coverage Status](https://coveralls.io/repos/femtotrader/RequestsCache.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/femtotrader/RequestsCache.jl?branch=master)
+
+[![codecov.io](http://codecov.io/github/femtotrader/RequestsCache.jl/coverage.svg?branch=master)](http://codecov.io/github/femtotrader/RequestsCache.jl?branch=master)
 
 RequestsCache.jl is a transparent persistent cache using [Requests.jl](https://github.com/JuliaWeb/Requests.jl) library.
 
@@ -13,7 +19,7 @@ Inspired by [requests-cache](http://requests-cache.readthedocs.org/).
 ## Install
 
 ```julia
-Pkg.clone("https://github.com/femtotrader/RequestsCache.jl.git")
+Pkg.add("RequestsCache")
 ```
 
 ## Usage
