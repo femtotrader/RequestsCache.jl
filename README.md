@@ -39,4 +39,4 @@ println(readall(response))
 ```
 
 ## Projects using RequestsCache.jl
- - [DataReader.jl](https://github.com/femtotrader/DataReader.jl)
+ - [DataReaders.jl](https://github.com/femtotrader/DataReaders.jl)
