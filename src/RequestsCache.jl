@@ -12,11 +12,10 @@ Inspired by [requests-cache](http://requests-cache.readthedocs.org/).
 
 module RequestsCache
 
-    export get, CachedSession, Session
+    export get, CachedSession
 
-    #import Dates
     import Base: read
-    import Requests: do_request, do_stream_request, ResponseStream
+    import Requests: get, do_request, do_stream_request, ResponseStream
     import URIParser: URI
     import HttpCommon: Response
     import JLD: jldopen, write
@@ -45,10 +44,6 @@ module RequestsCache
         else
             error("'$(backend)' is not a supported backend")
         end
-    end
-
-    function Session()
-        CachedSessionType("", "", Base.Dates.Day(0))
     end
 
     immutable CachedResponse
