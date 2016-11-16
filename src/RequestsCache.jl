@@ -149,6 +149,10 @@ module RequestsCache
         end
     end
 
+    function clear(session::CachedSessionType)
+        rm(session.cache_name)
+    end
+
     for f in [:get, :post, :put, :delete, :head,
               :trace, :options, :patch, :connect]
         f_str = uppercase(string(f))
