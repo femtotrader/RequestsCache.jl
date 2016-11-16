@@ -107,6 +107,17 @@ module RequestsCache
         end        
     end
 
+    "Returns true if the query hash exists in the cache"
+    function checkcache(session::CachedSessionType, prepared_query::PreparedQuery)
+        filename = session.cache_name
+        key = string(hash(prepared_query))
+        res = false
+        jldopen(filename, "r") do file
+            res = !isempty(find(names(file) .== key))
+        end
+        return res
+    end
+
     function execute_remote(prepared_query::PreparedQuery)
         println("execute_remote $(prepared_query.verb) $(prepared_query.uri) $(prepared_query.args)")
         #prepared_query.verb(string(prepared_query.uri); prepared_query.args...)
@@ -120,7 +131,7 @@ module RequestsCache
 
     function execute_local(session::CachedSessionType, prepared_query::PreparedQuery, overwrite::Bool)
         println("execute_local")
-        try
+        if checkcache(session,prepared_query)
             retrieved_response = read(session, prepared_query)
             dt_expiration = retrieved_response.dt_stored + session.expire_after
             if dt_expiration > UTCnow() && !overwrite
@@ -132,8 +143,7 @@ module RequestsCache
                 write(session, prepared_query, response)
                 return response
             end
-        catch LoadError
-            println("LoadError $session")
+        else
             response = execute_remote(prepared_query)
             write(session, prepared_query, response)
             println("Write to $session")
