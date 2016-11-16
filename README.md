@@ -25,13 +25,9 @@ Pkg.add("RequestsCache")
 ## Usage
 
 ```julia
-import RequestsCache: Session, CachedSession
-import RequestsCache: get
+import RequestsCache: CachedSession, get
 
-session = Session()
-#session = CachedSession()
 session = CachedSession(cache_name="cache.jld", backend="jld", expire_after=Base.Dates.Day(1))
-#println(session)
 
 response = get(session, "http://httpbin.org/get", query = Dict("title" => "page1"))
 

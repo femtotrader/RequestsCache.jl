@@ -12,9 +12,8 @@ Inspired by [requests-cache](http://requests-cache.readthedocs.org/).
 
 module RequestsCache
 
-    export get, CachedSession, Session
+    export get, CachedSession
 
-    #import Dates
     import Base: read
     import Requests: do_request, do_stream_request, ResponseStream
     import URIParser: URI
@@ -45,10 +44,6 @@ module RequestsCache
         else
             error("'$(backend)' is not a supported backend")
         end
-    end
-
-    function Session()
-        CachedSessionType("", "", Base.Dates.Day(0))
     end
 
     immutable CachedResponse
@@ -112,9 +107,19 @@ module RequestsCache
         end        
     end
 
+    "Returns true if the query hash exists in the cache"
+    function checkcache(session::CachedSessionType, prepared_query::PreparedQuery)
+        filename = session.cache_name
+        key = string(hash(prepared_query))
+        res = false
+        jldopen(filename, "r") do file
+            res = !isempty(find(names(file) .== key))
+        end
+        return res
+    end
+
     function execute_remote(prepared_query::PreparedQuery)
         println("execute_remote $(prepared_query.verb) $(prepared_query.uri) $(prepared_query.args)")
-        #prepared_query.verb(string(prepared_query.uri); prepared_query.args...)
         verb = uppercase(string(prepared_query.verb))
         if !contains(verb, "_STREAMING")
             do_request(prepared_query.uri, verb; prepared_query.args...)
@@ -123,21 +128,21 @@ module RequestsCache
         end
     end
 
-    function execute_local(session::CachedSessionType, prepared_query::PreparedQuery)
+    function execute_local(session::CachedSessionType, prepared_query::PreparedQuery, overwrite::Bool)
         println("execute_local")
-        try
+        if checkcache(session,prepared_query)
             retrieved_response = read(session, prepared_query)
             dt_expiration = retrieved_response.dt_stored + session.expire_after
-            if dt_expiration > UTCnow()
+            if dt_expiration > UTCnow() && !overwrite
                 println("Not expired")
                 return retrieved_response.response
             else
                 println("Cache expired - update is necessary")
                 response = execute_remote(prepared_query)
                 write(session, prepared_query, response)
+                return response
             end
-        catch LoadError
-            println("LoadError $session")
+        else
             response = execute_remote(prepared_query)
             write(session, prepared_query, response)
             println("Write to $session")
@@ -145,38 +150,35 @@ module RequestsCache
         end
     end
 
-    function execute(prepared_query::PreparedQuery; session=Session())
+    function execute(prepared_query::PreparedQuery; session=Session(), overwrite = false)
         println(session)
         if session.backend == ""
             execute_remote(prepared_query)
         else
-            execute_local(session, prepared_query)
+            execute_local(session, prepared_query, overwrite)
         end
+    end
+
+    function clear(session::CachedSessionType)
+        rm(session.cache_name)
     end
 
     for f in [:get, :post, :put, :delete, :head,
               :trace, :options, :patch, :connect]
         f_str = uppercase(string(f))
-        #f_stream = symbol(string(f, "_streaming"))
         @eval begin
-            function ($f)(session::CachedSessionType, uri::URI, data::String; headers::Dict=Dict())
+            function ($f)(session::CachedSessionType, uri::URI, data::String; headers::Dict=Dict(), overwrite = false)
                 #do_request(uri, $f_str; data=data, headers=headers)
                 prepared_query = create_query($f_str, uri; data=data, headers=headers)
-                response = execute(prepared_query; session=session)
+                response = execute(prepared_query; session=session, overwrite = overwrite)
             end
 
-            ($f)(session::CachedSessionType, uri::String; args...) = ($f)(session, URI(uri); args...)
-            function ($f)(session::CachedSessionType, uri::URI; args...)
+            ($f)(session::CachedSessionType, uri::String; args...) = ($f)(session, URI(uri);  args...)
+            function ($f)(session::CachedSessionType, uri::URI; overwrite = false, args...)
                 #do_request(uri, $f_str; args...)
-                prepared_query = create_query($f_str, uri; args...)
-                response = execute(prepared_query; session=session)
+                prepared_query = create_query($f_str, uri;  args...)
+                response = execute(prepared_query; session=session, overwrite = overwrite)
             end
-
-            #function ($f_stream)(uri::URI, data::String; headers::Dict=Dict())
-            #    do_stream_request(uri, $f_str; data=data, headers=headers)
-            #end
-            #($f_stream)(uri::String; args...) = ($f_stream)(URI(uri); args...)
-            #($f_stream)(uri::URI; args...) = do_stream_request(uri, $f_str; args...)
         end
     end
 
