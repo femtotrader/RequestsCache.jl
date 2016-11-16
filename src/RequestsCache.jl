@@ -120,7 +120,6 @@ module RequestsCache
 
     function execute_remote(prepared_query::PreparedQuery)
         println("execute_remote $(prepared_query.verb) $(prepared_query.uri) $(prepared_query.args)")
-        #prepared_query.verb(string(prepared_query.uri); prepared_query.args...)
         verb = uppercase(string(prepared_query.verb))
         if !contains(verb, "_STREAMING")
             do_request(prepared_query.uri, verb; prepared_query.args...)
@@ -167,7 +166,6 @@ module RequestsCache
     for f in [:get, :post, :put, :delete, :head,
               :trace, :options, :patch, :connect]
         f_str = uppercase(string(f))
-        #f_stream = symbol(string(f, "_streaming"))
         @eval begin
             function ($f)(session::CachedSessionType, uri::URI, data::String; headers::Dict=Dict(), overwrite = false)
                 #do_request(uri, $f_str; data=data, headers=headers)
@@ -181,12 +179,6 @@ module RequestsCache
                 prepared_query = create_query($f_str, uri;  args...)
                 response = execute(prepared_query; session=session, overwrite = overwrite)
             end
-
-            #function ($f_stream)(uri::URI, data::String; headers::Dict=Dict())
-            #    do_stream_request(uri, $f_str; data=data, headers=headers)
-            #end
-            #($f_stream)(uri::String; args...) = ($f_stream)(URI(uri); args...)
-            #($f_stream)(uri::URI; args...) = do_stream_request(uri, $f_str; args...)
         end
     end
 
