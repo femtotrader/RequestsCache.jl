@@ -15,7 +15,7 @@ module RequestsCache
     export get, CachedSession
 
     import Base: read
-    import Requests: get, do_request, do_stream_request, ResponseStream
+    import Requests: do_request, do_stream_request, ResponseStream
     import URIParser: URI
     import HttpCommon: Response
     import JLD: jldopen, write
