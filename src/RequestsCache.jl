@@ -21,7 +21,7 @@ module RequestsCache
     import HttpCommon: Response
     import JLD: jldopen, write
 
-    immutable PreparedQuery
+    struct PreparedQuery
         verb::String
         uri::URI
         args::Array{Any,1}
@@ -33,7 +33,7 @@ module RequestsCache
     end
     create_query(verb::String, uri::String; args...) = create_query(verb, URI(uri); args...)
 
-    immutable CachedSessionType
+    struct CachedSessionType
         cache_name::String
         backend::String
         expire_after
@@ -51,7 +51,7 @@ module RequestsCache
         CachedSessionType("", "", Base.Dates.Day(0))
     end
 
-    immutable CachedResponse
+    struct CachedResponse
         dt_stored::DateTime
         response::Response
     end
@@ -61,7 +61,7 @@ module RequestsCache
     end
 
     #=
-    immutable CachedResponseStream{T}
+    struct CachedResponseStream{T}
         dt_stored::DateTime
         response::ResponseStream{T}
     end

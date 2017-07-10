@@ -1,6 +1,6 @@
 # RequestsCache.jl
 
-[![Package Evaluator](http://pkg.julialang.org/badges/RequestsCache_0.5.svg)](http://pkg.julialang.org/?pkg=RequestsCache)
+[![Package Evaluator](http://pkg.julialang.org/badges/RequestsCache_0.6.svg)](http://pkg.julialang.org/?pkg=RequestsCache)
 
 [![Build Status](https://travis-ci.org/femtotrader/RequestsCache.jl.svg?branch=master)](https://travis-ci.org/femtotrader/RequestsCache.jl)
 
